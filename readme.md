@@ -5,15 +5,15 @@
 
 ### installation
 
-```shell
-    $ go install go.senan.xyz/vi-pipe@latest
+```
+    go install go.senan.xyz/vi-pipe@latest
 ```
 
 ### usage
 
-```shell
-    $ export EDITOR=vi
-    $ vi-pipe [key] <in >out
+```
+    export EDITOR=vi
+    vi-pipe [-re] <cache-key> <in >out
 ```
 
 ### example
@@ -35,12 +35,8 @@
     $ cat people.csv | vi-pipe $(tty) | csv-to-json | jq '.[] | .address'
     Dublin, Irenand
     Barcelona, Spain
-    # nice, but there's a typo. let me fix it in the editor. and there'll be no need to add the header again
-    $ cat people.csv | vi-pipe $(tty) | csv-to-json | jq '.[] | .address'
+    # nice, but there's a typo. let me re-open in the editor. there'll be no need to add the header again
+    $ cat people.csv | vi-pipe -re $(tty) | csv-to-json | jq '.[] | .address'
     Dublin, Ireland
     Barcelona, Spain
 ```
-
-### todo
-
-- [ ] not open editor if there are 0 changes in the diff
