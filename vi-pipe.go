@@ -3,7 +3,6 @@
 package main
 
 import (
-	"crypto/sha1"
 	"flag"
 	"fmt"
 	"io"
@@ -23,10 +22,6 @@ func main() {
 	reOpen := flag.Bool("re", false, "re-open editor, even your change has already been recorded")
 	flag.Parse()
 
-	if len(flag.Args()) == 0 {
-		log.Fatalf("please provide a <key>")
-	}
-
 	editor, ok := os.LookupEnv("EDITOR")
 	if !ok {
 		log.Fatalf("$EDITOR not set")
@@ -35,20 +30,17 @@ func main() {
 		log.Fatalf("$EDITOR %q not found in $PATH", editor)
 	}
 
-	if err := run(os.Stdin, os.Stdout, editor, *reOpen, flag.Args()[0]); err != nil {
+	if err := run(os.Stdin, os.Stdout, editor, *reOpen); err != nil {
 		log.Fatalf("running: %v", err)
 	}
 }
 
-func run(inp io.Reader, out io.Writer, editor string, reOpen bool, diffKey string) error {
+func run(inp io.Reader, out io.Writer, editor string, reOpen bool) error {
 	inpBytes, err := io.ReadAll(inp)
 	if err != nil {
 		return fmt.Errorf("read stdin: %w", err)
 	}
-	diffPath, err := diffPath(diffKey)
-	if err != nil {
-		return fmt.Errorf("gen diff path: %w", err)
-	}
+	diffPath := fmt.Sprintf(".%s.diff", program)
 	_, err = os.Stat(diffPath)
 	openEditor := err != nil || reOpen
 
@@ -117,17 +109,6 @@ func editInput(editor string, ttyPath string, inp []byte, withEditor bool) ([]by
 		return nil, fmt.Errorf("read tmp: %w", err)
 	}
 	return out, nil
-}
-
-func diffPath(key string) (string, error) {
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		return "", fmt.Errorf("find user cache dir: %w", err)
-	}
-	hash := sha1.New()
-	hash.Write([]byte(key))
-	keyPathPrefixed := fmt.Sprintf("%s.%x", program, hash.Sum(nil))
-	return filepath.Join(cacheDir, keyPathPrefixed), nil
 }
 
 func genDiff(a, b string) string {
