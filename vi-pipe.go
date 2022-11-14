@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -41,8 +42,8 @@ func run(inp io.Reader, out io.Writer, editor string, reOpen bool) error {
 		return fmt.Errorf("read stdin: %w", err)
 	}
 	diffPath := fmt.Sprintf(".%s.diff", program)
-	_, err = os.Stat(diffPath)
-	openEditor := err != nil || reOpen
+	stat, err := os.Stat(diffPath)
+	openEditor := reOpen || err != nil || time.Since(stat.ModTime()) > 30*time.Minute
 
 	diffFile, err := os.OpenFile(diffPath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
